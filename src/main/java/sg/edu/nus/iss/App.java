@@ -61,6 +61,10 @@ public class App
                         //send the randomcookie out using DataOutputStream  (dos.writeUTF)
                         dos.writeUTF(randomCookie);
                         dos.flush();
+                        System.out.println("Sent a cookie to client");
+                    }else if (!msgReceived.equals("close") && !msgReceived.equals("get-cookie")){
+                        dos.writeUTF("Invalid command");
+                        dos.flush();
                     }
                 }
                 dos.close();

@@ -1,9 +1,12 @@
 package sg.edu.nus.iss;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -27,7 +30,7 @@ public class App
         cookie.readCookieFile(fileName);
         String myCookie = cookie.getRandomCookie();
         System.out.println(myCookie);
-        
+
 
         ServerSocket server = new ServerSocket(Integer.parseInt(portNumber));
         Socket socket = server.accept();
@@ -35,20 +38,42 @@ public class App
         //store message sent from client, e.g. get-cookie
         String msgReceived = "";
         
+        // slide 9 - allow server to read and write over the communication channel
         try (InputStream is = socket.getInputStream()){
             BufferedInputStream bis = new BufferedInputStream(is);
             DataInputStream dis = new DataInputStream(bis);
-            String line = dis.readUTF();
 
-            while (!msgReceived.equals("close")){
-                //instantiate cookie.java
-                //get a random cookie
+            try (OutputStream os = socket.getOutputStream()){
+                BufferedOutputStream bos = new BufferedOutputStream(os);
+                DataOutputStream dos = new DataOutputStream(bos);
 
-                String randomCookie = cookie.RandomCookie();
+                //write logic to receive and send
+                while (!msgReceived.equals("close")){
+                    //slide 9 - receive message
+                    msgReceived = dis.readUTF();
 
+                    if (msgReceived.equals("get-cookie")){
+                        //instantiate cookie.java
+                        //get a random cookie
+        
+                        String randomCookie = cookie.getRandomCookie();
+
+                        //send the randomcookie out using DataOutputStream  (dos.writeUTF)
+                        dos.writeUTF(randomCookie);
+                        dos.flush();
+                    }
+                }
+                dos.close();
+                bos.close();
+                os.close();
             }
-        }
+            dis.close();
+            bis.close();
+            is.close();
 
+        }
+        socket.close();
+        server.close();
 
     }
 }
